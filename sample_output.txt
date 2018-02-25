@@ -1,0 +1,58 @@
+$ spark-shell --jars ~/data/intellij_workspace/spark-test/target/spark-tests-1.0.jar
+
+Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+18/02/25 08:16:48 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+18/02/25 08:16:48 WARN Utils: Your hostname, localhost.localdomain resolves to a loopback address: 127.0.0.1; using 10.0.2.15 instead (on interface enp0s3)
+18/02/25 08:16:48 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+18/02/25 08:16:51 WARN ObjectStore: Failed to get database global_temp, returning NoSuchObjectException
+Spark context Web UI available at http://10.0.2.15:4040
+Spark context available as 'sc' (master = local[*], app id = local-1519564609174).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.2.0
+      /_/
+
+Using Scala version 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_121)
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> val test = spark.read.format("silly-ds").load()
+java.lang.IllegalArgumentException: Invalid input path; it must be provided (e.g. load('path'))
+  at commaweed.datasource.silly.SillyRelation.validateInputPath(SillyRelation.java:58)
+  at commaweed.datasource.silly.SillyRelation.<init>(SillyRelation.java:76)
+  at commaweed.datasource.silly.SillyDataSource.createRelation(SillyDataSource.java:42)
+  at org.apache.spark.sql.execution.datasources.DataSource.resolveRelation(DataSource.scala:306)
+  at org.apache.spark.sql.DataFrameReader.load(DataFrameReader.scala:178)
+  at org.apache.spark.sql.DataFrameReader.load(DataFrameReader.scala:146)
+  ... 48 elided
+
+scala> val test = spark.read.format("silly-ds").load("some_unused_input_path")
+test: org.apache.spark.sql.DataFrame = [type: string, count: int ... 1 more field]
+
+scala> test.printSchema
+root
+ |-- type: string (nullable = true)
+ |-- count: integer (nullable = true)
+ |-- amount: double (nullable = true)
+
+
+scala> test.show(false)
++----+-----+------+
+|type|count|amount|
++----+-----+------+
+|a   |1    |1.1   |
+|b   |2    |2.2   |
+|c   |3    |3.3   |
+|d   |4    |4.4   |
+|e   |5    |5.5   |
+|aa  |11   |11.11 |
+|bb  |22   |22.22 |
+|cc  |33   |33.33 |
+|dd  |44   |44.44 |
+|ee  |55   |55.55 |
++----+-----+------+

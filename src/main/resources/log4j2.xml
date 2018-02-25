@@ -1,0 +1,31 @@
+<Configuration monitorInterval="60" shutdownHook="disable">
+   <Properties>
+      <Property name="logPath">logs</Property>
+      <Property name="patternLayout">%d [%t] %-5p [%C.%M()] %m%n</Property>
+   </Properties>
+   <Appenders>
+      <Console name="consoleAppender" target="SYSTEM_OUT">
+         <PatternLayout>
+            <pattern>
+               ${patternLayout}
+            </pattern>>
+         </PatternLayout>
+      </Console>
+      <File name="applicationAppender" fileName="${logPath}/app.log" >
+         <PatternLayout>
+            <pattern>
+               ${patternLayout}
+            </pattern>
+         </PatternLayout>
+      </File>
+   </Appenders>
+   <Loggers>
+      <Logger name="commaweed" level="debug" additivity="false">
+         <AppenderRef ref="applicationAppender"/>
+         <AppenderRef ref="consoleAppender"/>
+      </Logger>
+      <Root>
+         <AppenderRef ref="consoleAppender"/>
+      </Root>
+   </Loggers>
+</Configuration>
