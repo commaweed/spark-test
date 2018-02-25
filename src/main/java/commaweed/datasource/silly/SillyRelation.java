@@ -117,6 +117,69 @@ public class SillyRelation extends BaseRelation
       return schema;
    }
 
+   // return the fake data as silly records
+   private List<SillyRecord> performTableScan() {
+      List<SillyRecord> records = new ArrayList<>();
+      for (String row : FAKE_DATA) {
+         String[] values = row.split(",");
+         SillyRecord record = new SillyRecord();
+         record.setType(values[0]);
+         record.setCount(Integer.parseInt(values[1]));
+         record.setAmount(Double.parseDouble(values[2]));
+         records.add(record);
+      }
+      return records;
+   }
+
+   /**
+    * TableScan - idea is to have it to full data retrieval for the specified
+    * input path with no push down filtering or column prune.
+    * @return an RDD or generic Rows.
+    */
+   @Override
+   public RDD<Row> buildScan() {
+      List<SillyRecord> records = performTableScan();
+
+      // convert silly records to RDD<Row>
+      JavaSparkContext sparkContext = new JavaSparkContext(sqlContext.sparkContext());
+      JavaRDD<Row> javaRdd = sparkContext.parallelize(records).map(
+         record -> RowFactory.create(record.getType(), record.getCount(), record.getAmount())
+      );
+
+      // return the generic non-java RDD
+      return javaRdd.rdd();
+   }
+
+   /** setters/getters for user supplied schema and other scans and write **/
+
+   public StructType getSchema() {
+      return schema;
+   }
+
+   public void setSchema(StructType schema) {
+      this.schema = schema;
+   }
+
+   public Dataset<Row> getDataToInsert() {
+      return dataToInsert;
+   }
+
+   public void setDataToInsert(SaveMode mode, Dataset<Row> dataToInsert) {
+      this.dataToInsert = dataToInsert;
+   }
+
+   public String[] getRequiredColumns() {
+      return requiredColumns;
+   }
+
+   public void setRequiredColumns(String[] requiredColumns) {
+      if (requiredColumns != null && requiredColumns.length > 0) {
+         this.requiredColumns = requiredColumns;
+      }
+   }
+
+   /** IMPLEMENT THE FOLLOWING IF WANT TO SUPPORT column pruning, filtering pushdown, and ability to write **/
+
    /**
     * InsertableRelation - idea is to have this method to the writing to the data source.
     * @param data The data that will be inserted.
@@ -147,65 +210,5 @@ public class SillyRelation extends BaseRelation
 //   @Override
    public RDD<Row> buildScan(String[] requiredColumns) {
       return null;
-   }
-
-   // return the fake data as silly records
-   private List<SillyRecord> performTableScan() {
-      List<SillyRecord> records = new ArrayList<>();
-      for (String row : FAKE_DATA) {
-         String[] values = row.split(",");
-         SillyRecord record = new SillyRecord();
-         record.setType(values[0]);
-         record.setCount(Integer.parseInt(values[1]));
-         record.setAmount(Double.parseDouble(values[2]));
-         records.add(record);
-      }
-      return records;
-   }
-
-   /**
-    * TableScan - idea is to have it to full data retrieval for the specified
-    * input path with no push down filtering or column prune.
-    * @return an RDD or generic Rows.
-    */
-   @Override
-   public RDD<Row> buildScan() {
-      List<SillyRecord> records = performTableScan();
-
-      // convert silly records to RDD<Row>
-      JavaSparkContext sparkContext = new JavaSparkContext(sqlContext.sparkContext());
-      JavaRDD<Row> javaRdd = sparkContext.parallelize(records).map(
-//         record -> RowFactory.create(record.getType(), record.getCount(), record.getAmount())
-         record -> RowFactory.create(record.getType(), record.getCount(), record.getAmount())
-      );
-
-      // return the generic non-java RDD
-      return javaRdd.rdd();
-   }
-
-   public StructType getSchema() {
-      return schema;
-   }
-
-   public void setSchema(StructType schema) {
-      this.schema = schema;
-   }
-
-   public Dataset<Row> getDataToInsert() {
-      return dataToInsert;
-   }
-
-   public void setDataToInsert(SaveMode mode, Dataset<Row> dataToInsert) {
-      this.dataToInsert = dataToInsert;
-   }
-
-   public String[] getRequiredColumns() {
-      return requiredColumns;
-   }
-
-   public void setRequiredColumns(String[] requiredColumns) {
-      if (requiredColumns != null && requiredColumns.length > 0) {
-         this.requiredColumns = requiredColumns;
-      }
    }
 }
